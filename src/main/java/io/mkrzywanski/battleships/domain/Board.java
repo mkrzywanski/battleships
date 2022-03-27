@@ -1,14 +1,16 @@
 package io.mkrzywanski.battleships.domain;
 
+import io.mkrzywanski.battleships.domain.exception.GameRulesViolationException;
+import io.mkrzywanski.battleships.domain.exception.PositionOutOfBoardException;
+import io.mkrzywanski.battleships.domain.exception.ShipBodyOverlappingException;
 import io.mkrzywanski.battleships.domain.view.BoardSnapshot;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.function.Function;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 class Board {
@@ -17,10 +19,13 @@ class Board {
     private final int height;
     private final List<Ship> shipList;
     private final Map<Position, Ship> shipMap;
+    private final GameRules gameRules;
 
-    Board(final int width, final int height) {
-        this.width = width;
-        this.height = height;
+
+    Board(GameRules gameRules) {
+        this.width = gameRules.getBoardDimensions().width();
+        this.height = gameRules.getBoardDimensions().height();
+        this.gameRules = gameRules;
         this.shipList = new ArrayList<>();
         this.shipMap = new HashMap<>();
     }
@@ -48,55 +53,26 @@ class Board {
         for (Position position : shipParts) {
             verifyWithinBoard(position);
         }
-        verifyShipBodyContinuity(shipParts);
 
-        var shipPartCoordinates = shipParts.stream()
-                .map(ShipPartCoordinate::new)
-                .toList();
+        verifyPositionsDoNotOverlap(shipParts);
 
-        Ship ship = new Ship(shipPartCoordinates, playerId);
+        Ship ship = new Ship(shipParts, playerId);
+
+        boolean cannotPlace = !new CurrentBoardStateVerifier(shipList, gameRules.getAllowedShipDefinitions()).canPlace(ship, playerId);
+        if (cannotPlace) {
+            throw new GameRulesViolationException("");
+        }
+
         shipList.add(ship);
         shipParts.forEach(position -> shipMap.put(position, ship));
     }
 
-    private void verifyShipBodyContinuity(final List<Position> shipParts) {
-        if (shipParts.isEmpty()) {
-            throw new IllegalArgumentException();
+    private void verifyPositionsDoNotOverlap(final List<Position> shipParts) {
+        Set<Position> takenPositions = shipMap.keySet();
+        boolean b = shipParts.stream().anyMatch(takenPositions::contains);
+        if (b) {
+            throw new ShipBodyOverlappingException("");
         }
-
-        if (shipParts.size() > 1) {
-            if (isVertical(shipParts)) {
-               verifyContinuityInAxis(shipParts, Position::y);
-            } else if(isHorizontal(shipParts)) {
-                verifyContinuityInAxis(shipParts, Position::x);
-            }
-        }
-    }
-
-    private void verifyContinuityInAxis(List<Position> positions, Function<Position, Integer> axisValueExtractor) {
-        Iterator<Position> iterator = positions.iterator();
-        Position currentPosition = iterator.next();
-        while (iterator.hasNext()) {
-            Position nextPosition = iterator.next();
-            Integer previous = axisValueExtractor.apply(currentPosition);
-            Integer next = axisValueExtractor.apply(nextPosition);
-            if (previous + 1 != next) {
-                throw new IllegalShipPartPositionException("");
-            }
-            currentPosition = nextPosition;
-        }
-    }
-
-    private boolean isVertical(final List<Position> positions) {
-        return check(positions, Position::x);
-    }
-
-    private boolean isHorizontal(final List<Position> positions) {
-        return check(positions, Position::y);
-    }
-
-    private <T> boolean check(final List<Position> positions, Function<Position, Integer> extractor) {
-        return positions.stream().map(extractor).collect(Collectors.toSet()).size() == 1;
     }
 
     private void verifyWithinBoard(final Position position) {

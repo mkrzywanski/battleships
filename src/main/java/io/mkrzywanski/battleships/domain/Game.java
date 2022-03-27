@@ -1,15 +1,22 @@
 package io.mkrzywanski.battleships.domain;
 
 import io.mkrzywanski.battleships.domain.view.GameSnapshot;
-import lombok.RequiredArgsConstructor;
 
 import java.util.Optional;
 
-@RequiredArgsConstructor
 public class Game {
+
     private final Player player1;
     private final Player player2;
     private final Board board;
+    private final GameRules gameRules;
+
+    Game(final Player player1, final Player player2, final GameRules gameRules) {
+        this.player1 = player1;
+        this.player2 = player2;
+        this.board = new Board(gameRules);
+        this.gameRules = gameRules;
+    }
 
     public boolean isFinished() {
         return getWinner().isPresent();

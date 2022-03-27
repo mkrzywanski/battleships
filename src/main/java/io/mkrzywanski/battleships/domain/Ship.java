@@ -1,22 +1,28 @@
 package io.mkrzywanski.battleships.domain;
 
 import io.mkrzywanski.battleships.domain.view.ShipSnapshot;
-import lombok.AllArgsConstructor;
 
 import java.util.List;
 
-@AllArgsConstructor
 class Ship {
 
     private final List<ShipPartCoordinate> coordinates;
     private final PlayerId playerId;
 
-    public boolean isAlive() {
+    Ship(final List<Position> shipParts, final PlayerId playerId) {
+        ShipBodyConstructionVerifier.verifyShipBodyContinuity(shipParts);
+        this.coordinates = shipParts.stream()
+                .map(ShipPartCoordinate::new)
+                .toList();
+        this.playerId = playerId;
+    }
+
+    boolean isAlive() {
         return !coordinates.stream()
                 .allMatch(ShipPartCoordinate::isHit);
     }
 
-    public boolean hasOwnerWithId(PlayerId playerId) {
+    boolean hasOwnerWithId(PlayerId playerId) {
         return this.playerId.equals(playerId);
     }
 
@@ -28,10 +34,18 @@ class Ship {
                 .hit();
     }
 
-    public ShipSnapshot toSnapshot() {
+    ShipSnapshot toSnapshot() {
         return ShipSnapshot.builder()
                 .playerId(playerId.uuid())
                 .shipCoordinateSnapshotList(coordinates.stream().map(ShipPartCoordinate::toSnapshot).toList())
                 .build();
+    }
+
+    int getLength() {
+        return coordinates.size();
+    }
+
+    PlayerId getPlayerId() {
+        return playerId;
     }
 }
