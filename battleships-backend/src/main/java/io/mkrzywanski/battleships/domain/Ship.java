@@ -22,7 +22,7 @@ class Ship {
                 .allMatch(ShipPartCoordinate::isHit);
     }
 
-    boolean hasOwnerWithId(PlayerId playerId) {
+    boolean hasOwnerWithId(final PlayerId playerId) {
         return this.playerId.equals(playerId);
     }
 

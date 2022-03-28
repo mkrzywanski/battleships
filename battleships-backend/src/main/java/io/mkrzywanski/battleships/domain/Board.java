@@ -10,7 +10,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 class Board {
@@ -22,7 +21,7 @@ class Board {
     private final GameRules gameRules;
 
 
-    Board(GameRules gameRules) {
+    Board(final GameRules gameRules) {
         this.width = gameRules.getBoardDimensions().width();
         this.height = gameRules.getBoardDimensions().height();
         this.gameRules = gameRules;
@@ -30,25 +29,25 @@ class Board {
         this.shipMap = new HashMap<>();
     }
 
-    boolean hit(Position position) {
+    boolean hit(final Position position) {
         return Optional.ofNullable(shipMap.get(position))
                 .map(ship -> ship.hit(position))
                 .orElse(false);
     }
 
-    List<Ship> aliveShipsFor(PlayerId playerId) {
+    List<Ship> aliveShipsFor(final PlayerId playerId) {
         return shipList.stream()
                 .filter(ship -> ship.hasOwnerWithId(playerId))
                 .filter(Ship::isAlive)
                 .collect(Collectors.toList());
     }
 
-    boolean hasAliveShipsFor(PlayerId playerId) {
+    boolean hasAliveShipsFor(final PlayerId playerId) {
         return !aliveShipsFor(playerId).isEmpty();
     }
 
     void placeShip(final NewShip newShip, final PlayerId playerId) {
-        var shipParts = newShip.shipParts();
+        final var shipParts = newShip.shipParts();
 
         for (Position position : shipParts) {
             verifyWithinBoard(position);
@@ -56,9 +55,9 @@ class Board {
 
         verifyPositionsDoNotOverlap(shipParts);
 
-        Ship ship = new Ship(shipParts, playerId);
+        final Ship ship = new Ship(shipParts, playerId);
 
-        boolean cannotPlace = !new CurrentBoardStateVerifier(shipList, gameRules.getAllowedShipDefinitions()).canPlace(ship, playerId);
+        final boolean cannotPlace = !new CurrentBoardStateVerifier(shipList, gameRules.getAllowedShipDefinitions()).canPlace(ship, playerId);
         if (cannotPlace) {
             throw new GameRulesViolationException("");
         }
@@ -68,9 +67,10 @@ class Board {
     }
 
     private void verifyPositionsDoNotOverlap(final List<Position> shipParts) {
-        Set<Position> takenPositions = shipMap.keySet();
-        boolean b = shipParts.stream().anyMatch(takenPositions::contains);
-        if (b) {
+        final var takenPositions = shipMap.keySet();
+        final boolean isOverlapping = shipParts.stream()
+                .anyMatch(takenPositions::contains);
+        if (isOverlapping) {
             throw new ShipBodyOverlappingException("");
         }
     }
@@ -81,14 +81,14 @@ class Board {
     }
 
     private void verifyYPosition(final Position position) {
-        int y = position.y();
+        final int y = position.y();
         if (y < 0 || y > height) {
             throw new PositionOutOfBoardException("Position " + position + " is out of board. Maximum width is " + width);
         }
     }
 
     private void verifyXPosition(final Position position) {
-        int x = position.x();
+        final int x = position.x();
         if (x < 0 || x > width) {
             throw new PositionOutOfBoardException("Position " + position + " is not within bounds. Width - [0," + width + "");
         }

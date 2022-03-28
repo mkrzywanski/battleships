@@ -16,7 +16,7 @@ public class NewShipBuilder {
         return new NewShipBuilder();
     }
 
-    public NewShipBuilder addShipPart(Position position) {
+    public NewShipBuilder addShipPart(final Position position) {
         positions.add(position);
         return this;
     }

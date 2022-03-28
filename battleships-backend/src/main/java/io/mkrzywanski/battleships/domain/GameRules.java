@@ -1,8 +1,5 @@
 package io.mkrzywanski.battleships.domain;
 
-import java.util.HashMap;
-import java.util.Map;
-
 class GameRules {
 
     private final AllowedShipDefinitions allowedShipDefinitions;
@@ -13,7 +10,7 @@ class GameRules {
         this.boardDimensions = boardDimensions;
     }
 
-    public GameRules addShipLengthCount(int shipLength, int shipAmount) {
+    public GameRules addShipLengthCount(final int shipLength, final int shipAmount) {
         if (shipAmount <= 0) {
             throw new IllegalArgumentException();
         }

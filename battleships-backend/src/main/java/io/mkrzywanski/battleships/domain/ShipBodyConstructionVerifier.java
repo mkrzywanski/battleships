@@ -26,13 +26,13 @@ final class ShipBodyConstructionVerifier {
         }
     }
 
-    private static void verifyContinuityInAxis(List<Position> positions, Function<Position, Integer> axisValueExtractor) {
-        Iterator<Position> iterator = positions.iterator();
+    private static void verifyContinuityInAxis(final List<Position> positions, final Function<Position, Integer> axisValueExtractor) {
+        final Iterator<Position> iterator = positions.iterator();
         Position currentPosition = iterator.next();
         while (iterator.hasNext()) {
-            Position nextPosition = iterator.next();
-            Integer previous = axisValueExtractor.apply(currentPosition);
-            Integer next = axisValueExtractor.apply(nextPosition);
+            final Position nextPosition = iterator.next();
+            final Integer previous = axisValueExtractor.apply(currentPosition);
+            final Integer next = axisValueExtractor.apply(nextPosition);
             if (previous + 1 != next) {
                 throw new IllegalShipPartPositionException("");
             }
@@ -48,7 +48,7 @@ final class ShipBodyConstructionVerifier {
         return check(positions, Position::y);
     }
 
-    private static <T> boolean check(final List<Position> positions, Function<Position, Integer> extractor) {
+    private static <T> boolean check(final List<Position> positions, final Function<Position, Integer> extractor) {
         return positions.stream()
                 .map(extractor)
                 .collect(Collectors.toSet())
