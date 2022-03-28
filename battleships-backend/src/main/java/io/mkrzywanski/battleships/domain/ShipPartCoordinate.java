@@ -28,7 +28,7 @@ class ShipPartCoordinate {
         return !isHit;
     }
 
-    boolean equalsByPosition(Position position) {
+    boolean equalsByPosition(final Position position) {
         return this.position.equals(position);
     }
 

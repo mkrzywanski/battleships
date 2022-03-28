@@ -13,17 +13,16 @@ class CurrentBoardStateVerifier {
         this.allowedShipDefinitions = allowedShipDefinitions;
     }
 
-    boolean canPlace(Ship ship, PlayerId playerId) {
-        int newShipLength = ship.getLength();
-
-        int maxShipAmountForLength = allowedShipDefinitions.getMaxShipContForLength(newShipLength);
+    boolean canPlace(final Ship ship, final PlayerId playerId) {
+        final int newShipLength = ship.getLength();
+        final int maxShipAmountForLength = allowedShipDefinitions.getMaxShipContForLength(newShipLength);
 
         //no rule exists so we cannot place
         if (maxShipAmountForLength == 0) {
             return false;
         }
 
-        var shipsForPlayer = currentShips.stream()
+        final var shipsForPlayer = currentShips.stream()
                 .collect(Collectors.groupingBy(Ship::getPlayerId))
                 .getOrDefault(playerId, List.of());
 
@@ -31,7 +30,7 @@ class CurrentBoardStateVerifier {
             return true;
         }
 
-        List<Ship> currentShipsForLength = shipsForPlayer.stream()
+        final var currentShipsForLength = shipsForPlayer.stream()
                 .collect(Collectors.groupingBy(Ship::getLength))
                 .getOrDefault(newShipLength, List.of());
 
@@ -39,7 +38,7 @@ class CurrentBoardStateVerifier {
             return true;
         }
 
-        int currentShipAmountWithGivenLength = currentShipsForLength.size();
+        final int currentShipAmountWithGivenLength = currentShipsForLength.size();
         return currentShipAmountWithGivenLength < maxShipAmountForLength;
 
     }

@@ -26,11 +26,11 @@ public class Game {
         return board.hasAliveShipsFor(player1.playerId()) ? Optional.of(player1) : Optional.of(player2);
     }
 
-    public boolean hit(Position position) {
+    public boolean hit(final Position position) {
         return board.hit(position);
     }
 
-    public void placeShip(NewShip newShip, PlayerId playerId) {
+    public void placeShip(final NewShip newShip, final PlayerId playerId) {
         board.placeShip(newShip, playerId);
     }
 
