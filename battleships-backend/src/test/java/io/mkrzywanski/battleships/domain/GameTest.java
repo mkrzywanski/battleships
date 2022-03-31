@@ -21,8 +21,8 @@ import static org.junit.jupiter.params.provider.Arguments.of;
 
 class GameTest {
 
-    Player player1 = new Player(PlayerId.of(UUID.fromString("5a5efc19-2425-4bb4-9de5-b71af27c54f2")));
-    Player player2 = new Player(PlayerId.of(UUID.fromString("94f8fe7a-ebfd-4624-9a98-12a4ce6c96cb")));
+    PlayerId player1 = PlayerId.of(UUID.fromString("5a5efc19-2425-4bb4-9de5-b71af27c54f2"));
+    PlayerId player2 = PlayerId.of(UUID.fromString("94f8fe7a-ebfd-4624-9a98-12a4ce6c96cb"));
 
     @Test
     @DisplayName("Should place ship on board")
@@ -39,11 +39,11 @@ class GameTest {
                 .build();
 
         //when
-        game.placeShip(newShip, player1.playerId());
+        game.placeShip(newShip, player1);
 
         //then
         final GameSnapshot gameSnapshot = game.toSnapshot();
-        assertThat(gameSnapshot.getBoardSnapshot().getShipSnapshots())
+        assertThat(gameSnapshot.getBoardSnapshots().get(player1).getShipSnapshots())
                 .isNotEmpty()
                 .hasSize(1);
     }
@@ -56,7 +56,7 @@ class GameTest {
         final Game game = new Game(player1, player2, gameRules);
 
         //when
-        final ThrowableAssert.ThrowingCallable code = () -> game.placeShip(newShip, player1.playerId());
+        final ThrowableAssert.ThrowingCallable code = () -> game.placeShip(newShip, player1);
 
         //then
         assertThatCode(code).isInstanceOf(IllegalShipPartPositionException.class);
@@ -103,15 +103,15 @@ class GameTest {
                 .addShipPart(Position.of(0, 2))
                 .addShipPart(Position.of(0, 3))
                 .build();
-        game.placeShip(newShip, player1.playerId());
+        game.placeShip(newShip, player1);
 
         //when
-        final boolean hit = game.hit(Position.of(0, 1));
+        final boolean hit = game.hit(Position.of(0, 1), player1);
 
         //then
         assertThat(hit).isTrue();
         final GameSnapshot gameSnapshot = game.toSnapshot();
-        assertThat(gameSnapshot.getBoardSnapshot().getShipSnapshots())
+        assertThat(gameSnapshot.getBoardSnapshots().get(player1).getShipSnapshots())
                 .isNotEmpty()
                 .hasSize(1)
                 .first()
@@ -125,7 +125,7 @@ class GameTest {
         final Game game = new Game(player1, player2, gameRules);
 
         //when
-        final boolean hit = game.hit(Position.of(0, 1));
+        final boolean hit = game.hit(Position.of(0, 1), player1);
 
         //then
         assertThat(hit).isFalse();
@@ -145,10 +145,10 @@ class GameTest {
                 .addShipPart(Position.of(0, 3))
                 .build();
 
-        game.placeShip(existingShip, player1.playerId());
+        game.placeShip(existingShip, player1);
 
         //when
-        final ThrowableAssert.ThrowingCallable code = () -> game.placeShip(newShip, player1.playerId());
+        final ThrowableAssert.ThrowingCallable code = () -> game.placeShip(newShip, player1);
 
         //then
         assertThatCode(code).isExactlyInstanceOf(ShipBodyOverlappingException.class);
@@ -199,18 +199,19 @@ class GameTest {
                 .addShipPart(Position.of(1, 3))
                 .build();
 
-        game.placeShip(existingShip, player1.playerId());
-        game.placeShip(player2Ship, player2.playerId());
+        game.placeShip(existingShip, player1);
+        game.placeShip(player2Ship, player2);
 
         for (Position position : player2Ship.shipParts()) {
-            game.hit(position);
+            game.hit(position, player2);
         }
 
         //when
         final var winner = game.getWinner();
 
         //then
-        assertThat(winner).isPresent()
+        assertThat(winner)
+                .isPresent()
                 .contains(player1);
     }
 
@@ -233,11 +234,11 @@ class GameTest {
                 .addShipPart(Position.of(1, 3))
                 .build();
 
-        game.placeShip(player1Ship, player1.playerId());
-        game.placeShip(player2Ship, player2.playerId());
+        game.placeShip(player1Ship, player1);
+        game.placeShip(player2Ship, player2);
 
         for (Position position : player2Ship.shipParts()) {
-            game.hit(position);
+            game.hit(position, player2);
         }
 
         //when
@@ -264,10 +265,10 @@ class GameTest {
                 .addShipPart(Position.of(1, 2))
                 .build();
 
-        game.placeShip(ship, player1.playerId());
+        game.placeShip(ship, player1);
 
         //when
-        final ThrowableAssert.ThrowingCallable code = () -> game.placeShip(anotherShip, player1.playerId());
+        final ThrowableAssert.ThrowingCallable code = () -> game.placeShip(anotherShip, player1);
 
         //then
         assertThatCode(code).isExactlyInstanceOf(GameRulesViolationException.class);
@@ -292,8 +293,8 @@ class GameTest {
                 .addShipPart(Position.of(1, 3))
                 .build();
 
-        game.placeShip(player1Ship, player1.playerId());
-        game.placeShip(player2Ship, player2.playerId());
+        game.placeShip(player1Ship, player1);
+        game.placeShip(player2Ship, player2);
 
         //when
         final boolean gameFinished = game.canBeStarted();
@@ -315,7 +316,7 @@ class GameTest {
                 .addShipPart(Position.of(0, 3))
                 .build();
 
-        game.placeShip(player1Ship, player1.playerId());
+        game.placeShip(player1Ship, player1);
 
         //when
         final boolean gameFinished = game.canBeStarted();

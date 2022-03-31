@@ -9,56 +9,55 @@ import lombok.EqualsAndHashCode;
 import java.util.AbstractMap.SimpleImmutableEntry;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @EqualsAndHashCode
 class Board {
 
-    private final int width;
-    private final int height;
     private final List<Ship> shipList;
     private final Map<Position, Ship> shipMap;
     private final GameRules gameRules;
+    private final Set<Position> additionalHits;
 
     Board(final GameRules gameRules) {
-        this.width = gameRules.getBoardDimensions().width();
-        this.height = gameRules.getBoardDimensions().height();
         this.gameRules = gameRules;
         this.shipList = new ArrayList<>();
         this.shipMap = new HashMap<>();
+        this.additionalHits = new HashSet<>();
     }
 
-    Board(final int width, final int height, final List<Ship> shipList, final GameRules gameRules) {
-        this.width = width;
-        this.height = height;
+    Board(final List<Ship> shipList, final GameRules gameRules,
+          final Set<Position> additionalPositionHits) {
         this.shipList = shipList;
         this.gameRules = gameRules;
         this.shipMap = shipList.stream()
                 .flatMap(ship -> ship.getPositions().stream().map(position -> new SimpleImmutableEntry<>(position, ship)))
                 .collect(Collectors.toMap(SimpleImmutableEntry::getKey, SimpleImmutableEntry::getValue));
+        this.additionalHits = additionalPositionHits;
     }
 
     boolean hit(final Position position) {
-        return Optional.ofNullable(shipMap.get(position))
-                .map(ship -> ship.hit(position))
-                .orElse(false);
+        if (shipMap.containsKey(position)) {
+            return shipMap.get(position).hit(position);
+        } else if (gameRules.getBoardDimensions().contains(position)) {
+            additionalHits.add(position);
+            return false;
+        } else {
+            return false;
+        }
+
     }
 
-    List<Ship> aliveShipsFor(final PlayerId playerId) {
+    boolean hasNoAliveShips() {
         return shipList.stream()
-                .filter(ship -> ship.hasOwnerWithId(playerId))
-                .filter(Ship::isAlive)
-                .collect(Collectors.toList());
+                .noneMatch(Ship::isAlive);
     }
 
-    boolean hasAliveShipsFor(final PlayerId playerId) {
-        return !aliveShipsFor(playerId).isEmpty();
-    }
-
-    void placeShip(final NewShip newShip, final PlayerId playerId) {
+    void placeShip(final NewShip newShip) {
         final var shipParts = newShip.shipParts();
 
         for (Position position : shipParts) {
@@ -67,9 +66,9 @@ class Board {
 
         verifyPositionsDoNotOverlap(shipParts);
 
-        final Ship ship = new Ship(shipParts, playerId);
+        final Ship ship = new Ship(shipParts);
 
-        final boolean cannotPlace = !new CurrentBoardStateVerifier(shipList, gameRules.getAllowedShipDefinitions()).canPlace(ship, playerId);
+        final boolean cannotPlace = !new CurrentBoardStateVerifier(shipList, gameRules.getAllowedShipDefinitions()).canPlace(ship);
         if (cannotPlace) {
             throw new GameRulesViolationException("");
         }
@@ -94,13 +93,15 @@ class Board {
 
     private void verifyYPosition(final Position position) {
         final int y = position.y();
+        final int height = gameRules.getBoardDimensions().height();
         if (y < 0 || y > height) {
-            throw new PositionOutOfBoardException("Position " + position + " is out of board. Maximum width is " + width);
+            throw new PositionOutOfBoardException("Position " + position + " is out of board. Maximum width is " + height);
         }
     }
 
     private void verifyXPosition(final Position position) {
         final int x = position.x();
+        final int width = gameRules.getBoardDimensions().width();
         if (x < 0 || x > width) {
             throw new PositionOutOfBoardException("Position " + position + " is not within bounds. Width - [0," + width + "");
         }
@@ -108,29 +109,18 @@ class Board {
 
     public BoardSnapshot toSnapshot() {
         return BoardSnapshot.builder()
-                .width(width)
-                .height(height)
                 .shipSnapshots(shipList.stream().map(Ship::toSnapshot).toList())
                 .gameRules(gameRules.toSnapshot())
+                .additionalHits(additionalHits)
                 .build();
     }
 
     boolean hasEnoughShips() {
-        final var shipsByPlayer = shipList.stream()
-                .collect(Collectors.groupingBy(Ship::getPlayerId));
-
-        final boolean anyPlayerHasNoShips = shipsByPlayer.keySet().size() < 2;
-        if (anyPlayerHasNoShips) {
+        if (shipList.isEmpty()) {
             return false;
+        } else {
+            return gameRules.getAllowedShipDefinitions().isSatisfiedBy(shipList);
         }
-
-        return shipsByPlayer.entrySet()
-                .stream()
-                .allMatch(entry -> {
-                    final var ships = entry.getValue();
-                    final var allowedShipDefinitions = gameRules.getAllowedShipDefinitions();
-                    return allowedShipDefinitions.isSatisfiedBy(ships);
-                });
     }
 
     static Builder builder() {
@@ -138,22 +128,11 @@ class Board {
     }
 
     private static class Builder {
-        private int width;
-        private int height;
         private List<Ship> shipList;
         private GameRules gameRules;
+        private Set<Position> additionalHitPositions;
 
         private Builder() {
-        }
-
-        private Builder width(final int width) {
-            this.width = width;
-            return this;
-        }
-
-        private Builder height(final int height) {
-            this.height = height;
-            return this;
         }
 
         private Builder shipList(final List<Ship> shipList) {
@@ -166,8 +145,13 @@ class Board {
             return this;
         }
 
+        private Builder additionalHitPositions(final Set<Position> additional) {
+            this.additionalHitPositions = additional;
+            return this;
+        }
+
         private Board build() {
-            return new Board(width, height, shipList, gameRules);
+            return new Board(shipList, gameRules, additionalHitPositions);
         }
 
     }
@@ -177,10 +161,9 @@ class Board {
         final var ships = shipSnapshots.stream().map(Ship::fromSnapshot).toList();
         final var gameRules = GameRules.fromSnapshot(boardSnapshot.getGameRules());
         return Board.builder()
-                .height(boardSnapshot.getHeight())
-                .width(boardSnapshot.getWidth())
                 .gameRules(gameRules)
                 .shipList(ships)
+                .additionalHitPositions(boardSnapshot.getAdditionalHits())
                 .build();
     }
 }

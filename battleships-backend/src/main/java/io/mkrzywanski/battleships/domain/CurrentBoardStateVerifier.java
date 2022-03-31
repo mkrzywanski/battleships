@@ -13,7 +13,7 @@ class CurrentBoardStateVerifier {
         this.allowedShipDefinitions = allowedShipDefinitions;
     }
 
-    boolean canPlace(final Ship ship, final PlayerId playerId) {
+    boolean canPlace(final Ship ship) {
         final int newShipLength = ship.getLength();
         final int maxShipAmountForLength = allowedShipDefinitions.getMaxShipAmountForLength(newShipLength);
 
@@ -22,15 +22,11 @@ class CurrentBoardStateVerifier {
             return false;
         }
 
-        final var shipsForPlayer = currentShips.stream()
-                .collect(Collectors.groupingBy(Ship::getPlayerId))
-                .getOrDefault(playerId, List.of());
-
-        if (shipsForPlayer.isEmpty()) {
+        if (currentShips.isEmpty()) {
             return true;
         }
 
-        final var currentShipsForLength = shipsForPlayer.stream()
+        final var currentShipsForLength = currentShips.stream()
                 .collect(Collectors.groupingBy(Ship::getLength))
                 .getOrDefault(newShipLength, List.of());
 
