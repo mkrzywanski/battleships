@@ -11,6 +11,11 @@ class ShipPartCoordinate {
         this.position = position;
     }
 
+    private ShipPartCoordinate(final Position position, final boolean isHit) {
+        this.position = position;
+        this.isHit = isHit;
+    }
+
     public boolean hit() {
         if (isHit) {
             return false;
@@ -37,5 +42,13 @@ class ShipPartCoordinate {
                 .isHit(isHit)
                 .position(position.toSnapshot())
                 .build();
+    }
+
+    static ShipPartCoordinate fromSnapshot(final ShipCoordinateSnapshot shipCoordinateSnapshot) {
+        return new ShipPartCoordinate(Position.fromSnapshot(shipCoordinateSnapshot.getPosition()), shipCoordinateSnapshot.isHit());
+    }
+
+    Position position() {
+        return position;
     }
 }

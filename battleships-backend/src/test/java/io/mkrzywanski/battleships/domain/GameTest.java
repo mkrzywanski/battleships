@@ -272,4 +272,86 @@ class GameTest {
         //then
         assertThatCode(code).isExactlyInstanceOf(GameRulesViolationException.class);
     }
+
+    @Test
+    void shouldBeAbleToStartGameWhenAllPlayersHaveEnoughShips() {
+        final GameRules gameRules = new GameRules(BoardDimensions.of(4, 4))
+                .addShipLengthCount(3, 1);
+
+        final Game game = new Game(player1, player2, gameRules);
+
+        final NewShip player1Ship = NewShipBuilder.newInstance()
+                .addShipPart(Position.of(0, 1))
+                .addShipPart(Position.of(0, 2))
+                .addShipPart(Position.of(0, 3))
+                .build();
+
+        final NewShip player2Ship = NewShipBuilder.newInstance()
+                .addShipPart(Position.of(1, 1))
+                .addShipPart(Position.of(1, 2))
+                .addShipPart(Position.of(1, 3))
+                .build();
+
+        game.placeShip(player1Ship, player1.playerId());
+        game.placeShip(player2Ship, player2.playerId());
+
+        //when
+        final boolean gameFinished = game.canBeStarted();
+
+        //then
+        assertThat(gameFinished).isTrue();
+    }
+
+    @Test
+    void shouldNotBeAbleToStartGameWhenOneOfPlayersDoesNotHaveEnoughShips() {
+        final GameRules gameRules = new GameRules(BoardDimensions.of(4, 4))
+                .addShipLengthCount(3, 1);
+
+        final Game game = new Game(player1, player2, gameRules);
+
+        final NewShip player1Ship = NewShipBuilder.newInstance()
+                .addShipPart(Position.of(0, 1))
+                .addShipPart(Position.of(0, 2))
+                .addShipPart(Position.of(0, 3))
+                .build();
+
+        game.placeShip(player1Ship, player1.playerId());
+
+        //when
+        final boolean gameFinished = game.canBeStarted();
+
+        //then
+        assertThat(gameFinished).isFalse();
+    }
+
+    @Test
+    void shouldNotBeAbleToStartGameWhenThereAreNoShips() {
+        final GameRules gameRules = new GameRules(BoardDimensions.of(4, 4))
+                .addShipLengthCount(3, 1);
+
+        final Game game = new Game(player1, player2, gameRules);
+
+        //when
+        final boolean gameFinished = game.canBeStarted();
+
+        //then
+        assertThat(gameFinished).isFalse();
+    }
+
+    @Test
+    void shouldDumpGameToSnapshot() {
+        //given
+        final GameRules gameRules = new GameRules(BoardDimensions.of(4, 4))
+                .addShipLengthCount(3, 1);
+
+        final Game game = new Game(player1, player2, gameRules);
+        final GameSnapshot gameSnapshot = game.toSnapshot();
+
+        //when
+        final Game rehydratedGame = Game.fromSnapshot(gameSnapshot);
+
+        //then
+        assertThat(game).isEqualTo(rehydratedGame);
+
+    }
 }

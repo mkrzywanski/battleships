@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class NewShipBuilder {
+    
     private final List<Position> positions = new ArrayList<>();
 
     private NewShipBuilder() {
