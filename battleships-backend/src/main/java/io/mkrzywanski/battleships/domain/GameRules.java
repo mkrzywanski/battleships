@@ -1,12 +1,21 @@
 package io.mkrzywanski.battleships.domain;
 
-class GameRules {
+import io.mkrzywanski.battleships.domain.view.GameRulesSnapshot;
+import lombok.EqualsAndHashCode;
+
+@EqualsAndHashCode
+public class GameRules {
 
     private final AllowedShipDefinitions allowedShipDefinitions;
     private final BoardDimensions boardDimensions;
 
-    GameRules(final BoardDimensions boardDimensions) {
+    public GameRules(final BoardDimensions boardDimensions) {
         this.allowedShipDefinitions = AllowedShipDefinitions.newInstance();
+        this.boardDimensions = boardDimensions;
+    }
+
+    private GameRules(final AllowedShipDefinitions allowedShipDefinitions, final BoardDimensions boardDimensions) {
+        this.allowedShipDefinitions = allowedShipDefinitions;
         this.boardDimensions = boardDimensions;
     }
 
@@ -31,5 +40,20 @@ class GameRules {
 
     BoardDimensions getBoardDimensions() {
         return boardDimensions;
+    }
+
+    GameRulesSnapshot toSnapshot() {
+        final var allowedShipDefinitions = this.allowedShipDefinitions.asMap();
+        return new GameRulesSnapshot(boardDimensions.height(), boardDimensions.width(), allowedShipDefinitions);
+    }
+
+    static GameRules fromSnapshot(final GameRulesSnapshot snapshot) {
+        final var allowedShipDefinitions = snapshot.getAllowedShipDefinitions();
+        final var allowedShipDefinitions1 = AllowedShipDefinitions.newInstance();
+        allowedShipDefinitions.forEach((shipLength, shipCount) -> allowedShipDefinitions1.add(AllowedShipDefinition.builder()
+                .maxCount(shipCount)
+                .shipLength(shipLength)
+                .build()));
+        return new GameRules(allowedShipDefinitions1, BoardDimensions.of(snapshot.getBoardWidth(), snapshot.getBoardHeight()));
     }
 }

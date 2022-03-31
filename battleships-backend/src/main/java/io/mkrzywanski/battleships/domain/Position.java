@@ -13,4 +13,8 @@ public record Position(int x, int y) {
                 .y(y)
                 .build();
     }
+
+    public static Position fromSnapshot(final PositionSnapshot positionSnapshot) {
+        return new Position(positionSnapshot.getX(), positionSnapshot.getY());
+    }
 }

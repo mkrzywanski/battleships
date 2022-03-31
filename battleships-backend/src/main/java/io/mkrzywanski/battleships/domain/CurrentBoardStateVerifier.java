@@ -15,7 +15,7 @@ class CurrentBoardStateVerifier {
 
     boolean canPlace(final Ship ship, final PlayerId playerId) {
         final int newShipLength = ship.getLength();
-        final int maxShipAmountForLength = allowedShipDefinitions.getMaxShipContForLength(newShipLength);
+        final int maxShipAmountForLength = allowedShipDefinitions.getMaxShipAmountForLength(newShipLength);
 
         //no rule exists so we cannot place
         if (maxShipAmountForLength == 0) {

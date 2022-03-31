@@ -11,4 +11,5 @@ public class BoardSnapshot {
     int width;
     int height;
     List<ShipSnapshot> shipSnapshots;
+    GameRulesSnapshot gameRules;
 }
