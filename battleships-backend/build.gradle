@@ -37,11 +37,7 @@ tasks.named('test') {
     useJUnitPlatform()
 }
 
-task codeCoverageReport(type: JacocoReport) {
-    executionData fileTree(project.rootDir.absolutePath).include("**/build/jacoco/*.exec")
-
-    sourceSets rootProject.sourceSets.main
-
+jacocoTestReport {
     reports {
         xml.enabled true
         xml.destination file("${buildDir}/reports/jacoco/report.xml")
@@ -50,6 +46,6 @@ task codeCoverageReport(type: JacocoReport) {
     }
 }
 
-codeCoverageReport.dependsOn {
-    rootProject.test
+test {
+    finalizedBy jacocoTestReport
 }
