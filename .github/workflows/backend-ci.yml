@@ -22,9 +22,6 @@ jobs:
     - name: Build with Gradle
       run: ./gradlew build -i
       working-directory: ./battleships-backend
-    - name: Generate coverage report
-      run: ./gradlew codeCoverageReport
-      working-directory: ./battleships-backend
     - name: Upload coverage report
       run: |
         curl -Os https://uploader.codecov.io/latest/linux/codecov
