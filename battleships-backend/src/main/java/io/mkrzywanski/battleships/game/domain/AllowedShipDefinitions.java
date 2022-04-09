@@ -32,8 +32,8 @@ public class AllowedShipDefinitions {
         return allowedShipDefinitions.getOrDefault(shipLength, 0);
     }
 
-    boolean isSatisfiedBy(final List<Ship> value) {
-        return value.stream()
+    boolean isSatisfiedBy(final List<Ship> ships) {
+        return ships.stream()
                 .collect(groupingBy(Ship::getLength, Collectors.collectingAndThen(counting(), Long::intValue)))
                 .entrySet().stream()
                 .allMatch(entry -> allowedShipDefinitions.getOrDefault(entry.getKey(), 0).equals(entry.getValue()));

@@ -70,7 +70,7 @@ class Board {
 
         final boolean cannotPlace = !new CurrentBoardStateVerifier(shipList, gameRules.getAllowedShipDefinitions()).canPlace(ship);
         if (cannotPlace) {
-            throw new GameRulesViolationException("");
+            throw new GameRulesViolationException("Cannot place ship on board. Ship parts " + shipParts);
         }
 
         shipList.add(ship);
@@ -82,7 +82,7 @@ class Board {
         final boolean isOverlapping = shipParts.stream()
                 .anyMatch(takenPositions::contains);
         if (isOverlapping) {
-            throw new ShipBodyOverlappingException("");
+            throw new ShipBodyOverlappingException("Given ship positions overlap other ship positions");
         }
     }
 
@@ -95,7 +95,7 @@ class Board {
         final int y = position.y();
         final int height = gameRules.getBoardDimensions().height();
         if (y < 0 || y > height) {
-            throw new PositionOutOfBoardException("Position " + position + " is out of board. Maximum width is " + height);
+            throw new PositionOutOfBoardException("Position " + position + " is out of board. Maximum height is " + height);
         }
     }
 

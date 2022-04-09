@@ -17,13 +17,16 @@ final class ShipBodyConstructionVerifier {
             throw new IllegalArgumentException();
         }
 
-        if (shipParts.size() > 1) {
-            if (isVertical(shipParts)) {
-                verifyContinuityInAxis(shipParts, Position::y);
-            } else if (isHorizontal(shipParts)) {
-                verifyContinuityInAxis(shipParts, Position::x);
-            }
+        if (shipParts.size() == 1) {
+            return;
         }
+
+        if (isVertical(shipParts)) {
+            verifyContinuityInAxis(shipParts, Position::y);
+        } else if (isHorizontal(shipParts)) {
+            verifyContinuityInAxis(shipParts, Position::x);
+        }
+
     }
 
     private static void verifyContinuityInAxis(final List<Position> positions, final Function<Position, Integer> axisValueExtractor) {

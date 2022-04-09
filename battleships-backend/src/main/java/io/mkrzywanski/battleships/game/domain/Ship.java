@@ -9,37 +9,18 @@ import java.util.List;
 class Ship {
 
     private final List<ShipPartCoordinate> coordinates;
-//    private final PlayerId playerId;
-
-//    Ship(final List<Position> shipParts, final PlayerId playerId) {
-//        ShipBodyConstructionVerifier.verifyShipBodyContinuity(shipParts);
-//        this.coordinates = shipParts.stream()
-//                .map(ShipPartCoordinate::new)
-//                .toList();
-//        this.playerId = playerId;
-//    }
 
     Ship(final List<Position> shipParts) {
         ShipBodyConstructionVerifier.verifyShipBodyContinuity(shipParts);
         this.coordinates = shipParts.stream()
                 .map(ShipPartCoordinate::new)
                 .toList();
-//        this.playerId = playerId;
     }
-
-//    private Ship(final List<ShipPartCoordinate> coordinates) {
-//        this.coordinates = coordinates;
-////        this.playerId = playerId;
-//    }
 
     boolean isAlive() {
         return !coordinates.stream()
                 .allMatch(ShipPartCoordinate::isHit);
     }
-
-//    boolean hasOwnerWithId(final PlayerId playerId) {
-//        return this.playerId.equals(playerId);
-//    }
 
     boolean hit(final Position position) {
         return coordinates.stream()
